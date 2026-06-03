@@ -40,7 +40,6 @@ services:
     volumes:
       - ../leanlayer-finalis-service/.cache:/app/.cache
       - ../leanlayer-finalis-service/runtime-configs/available_migrated_sources.yaml:/app/svc/configs/available_migrated_sources.yaml
-      - ../leanlayer-finalis-service/creds.json:/app/creds.json:ro
     networks:
       - ll-backend
 
@@ -78,7 +77,6 @@ services:
       - ../leanlayer-finalis-service/scheduler:/app/scheduler
       - ../leanlayer-finalis-service/chat:/app/chat
       - ../leanlayer-finalis-service/secrets_loader.py:/app/secrets_loader.py
-      - ../leanlayer-finalis-service/creds.json:/app/creds.json:ro
       - ../leanlayer-finalis-service/data/snapshots/postgres:/snapshots/postgres
       - ../leanlayer-finalis-service/data/snapshots/chromadb:/snapshots/chromadb
       - ../leanlayer-finalis-service/data/chromadb:/chroma/chroma:ro
