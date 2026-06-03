@@ -7,8 +7,6 @@ services:
       dockerfile: Dockerfile
     image: leanlayer-finalis-service:latest
     working_dir: /app/svc
-    env_file:
-      - ../leanlayer-finalis-service/.env
     ports:
       - "127.0.0.1:5555:5555"
     environment:
@@ -53,8 +51,6 @@ services:
       dockerfile: Dockerfile
     image: leanlayer-finalis-connectors:latest
     working_dir: /app/svc
-    env_file:
-      - ../leanlayer-finalis-connectors/.env
     command: gunicorn svc.wsgi:application --bind 0.0.0.0:5558 --workers 3 --timeout 120
     ports:
       - "127.0.0.1:5558:5558"
@@ -72,8 +68,6 @@ services:
       dockerfile: scheduler/Dockerfile
     image: ll-scheduler:latest
     restart: on-failure
-    env_file:
-      - ../leanlayer-finalis-service/.env
     environment:
       GOOGLE_APPLICATION_CREDENTIALS: /app/creds.json
       REDIS_HOST: redis
