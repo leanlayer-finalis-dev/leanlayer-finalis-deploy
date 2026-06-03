@@ -11,7 +11,6 @@ services:
       - "127.0.0.1:5555:5555"
     environment:
       DJANGO_SETTINGS_MODULE: svc.settings.production
-      GOOGLE_APPLICATION_CREDENTIALS: /app/creds.json
 
       RATE_LIMIT_REQUESTS: "100"
       RATE_LIMIT_WINDOW_SECONDS: "60"
@@ -69,7 +68,6 @@ services:
     image: ll-scheduler:latest
     restart: on-failure
     environment:
-      GOOGLE_APPLICATION_CREDENTIALS: /app/creds.json
       REDIS_HOST: redis
       LL_SERVICE_URL: http://leanlayer-finalis-service:5555
       LL_CONNECTORS_URL: http://leanlayer-finalis-connectors:5558
