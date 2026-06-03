@@ -1,14 +1,14 @@
 name: ll-stack
 
 services:
-  ll-service:
+  leanlayer-finalis-service:
     build:
-      context: ../ll-service
+      context: ../leanlayer-finalis-service
       dockerfile: Dockerfile
-    image: ll-service:latest
+    image: leanlayer-finalis-service:latest
     working_dir: /app/svc
     env_file:
-      - ../ll-service/.env
+      - ../leanlayer-finalis-service/.env
     ports:
       - "127.0.0.1:5555:5555"
     environment:
@@ -31,69 +31,69 @@ services:
       CHROMADB_HOST: chromadb
       CHROMADB_PORT: "8000"
 
-      LL_SERVICE_URL: http://ll-service:5555
-      LL_CONNECTORS_URL: http://ll-connectors:5558
+      LL_SERVICE_URL: http://leanlayer-finalis-service:5555
+      LL_CONNECTORS_URL: http://leanlayer-finalis-connectors:5558
 
       PYTHONPATH: /app/svc:/app
     depends_on:
       - postgres
       - redis
       - chromadb
-      - ll-connectors
+      - leanlayer-finalis-connectors
     volumes:
-      - ../ll-service/.cache:/app/.cache
-      - ../ll-service/runtime-configs/available_migrated_sources.yaml:/app/svc/configs/available_migrated_sources.yaml
-      - ../ll-service/creds.json:/app/creds.json:ro
+      - ../leanlayer-finalis-service/.cache:/app/.cache
+      - ../leanlayer-finalis-service/runtime-configs/available_migrated_sources.yaml:/app/svc/configs/available_migrated_sources.yaml
+      - ../leanlayer-finalis-service/creds.json:/app/creds.json:ro
     networks:
       - ll-backend
 
-  ll-connectors:
+  leanlayer-finalis-connectors:
     build:
-      context: ../ll-connectors
+      context: ../leanlayer-finalis-connectors
       dockerfile: Dockerfile
-    image: ll-connectors:latest
+    image: leanlayer-finalis-connectors:latest
     working_dir: /app/svc
     env_file:
-      - ../ll-connectors/.env
+      - ../leanlayer-finalis-connectors/.env
     command: gunicorn svc.wsgi:application --bind 0.0.0.0:5558 --workers 3 --timeout 120
     ports:
       - "127.0.0.1:5558:5558"
     environment:
       DJANGO_SETTINGS_MODULE: svc.settings.production
       PYTHONPATH: /app
-      LL_SERVICE_URL: http://ll-service:5555
-      LL_CONNECTORS_URL: http://ll-connectors:5558
+      LL_SERVICE_URL: http://leanlayer-finalis-service:5555
+      LL_CONNECTORS_URL: http://leanlayer-finalis-connectors:5558
     networks:
       - ll-backend
 
   scheduler:
     build:
-      context: ../ll-service
+      context: ../leanlayer-finalis-service
       dockerfile: scheduler/Dockerfile
     image: ll-scheduler:latest
     restart: on-failure
     env_file:
-      - ../ll-service/.env
+      - ../leanlayer-finalis-service/.env
     environment:
       GOOGLE_APPLICATION_CREDENTIALS: /app/creds.json
       REDIS_HOST: redis
-      LL_SERVICE_URL: http://ll-service:5555
-      LL_CONNECTORS_URL: http://ll-connectors:5558
+      LL_SERVICE_URL: http://leanlayer-finalis-service:5555
+      LL_CONNECTORS_URL: http://leanlayer-finalis-connectors:5558
       POSTGRES_HOST: postgres
 
       ROUTINE_TIMEOUT: "360"
     volumes:
-      - ../ll-service/scheduler:/app/scheduler
-      - ../ll-service/chat:/app/chat
-      - ../ll-service/secrets_loader.py:/app/secrets_loader.py
-      - ../ll-service/creds.json:/app/creds.json:ro
-      - ../ll-service/data/snapshots/postgres:/snapshots/postgres
-      - ../ll-service/data/snapshots/chromadb:/snapshots/chromadb
-      - ../ll-service/data/chromadb:/chroma/chroma:ro
+      - ../leanlayer-finalis-service/scheduler:/app/scheduler
+      - ../leanlayer-finalis-service/chat:/app/chat
+      - ../leanlayer-finalis-service/secrets_loader.py:/app/secrets_loader.py
+      - ../leanlayer-finalis-service/creds.json:/app/creds.json:ro
+      - ../leanlayer-finalis-service/data/snapshots/postgres:/snapshots/postgres
+      - ../leanlayer-finalis-service/data/snapshots/chromadb:/snapshots/chromadb
+      - ../leanlayer-finalis-service/data/chromadb:/chroma/chroma:ro
     depends_on:
       - postgres
-      - ll-service
-      - ll-connectors
+      - leanlayer-finalis-service
+      - leanlayer-finalis-connectors
     networks:
       - ll-backend
 
@@ -106,7 +106,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ../ll-service/data/postgres:/var/lib/postgresql/data
+      - ../leanlayer-finalis-service/data/postgres:/var/lib/postgresql/data
     networks:
       - ll-backend
 
@@ -114,14 +114,14 @@ services:
     image: redis:7-alpine
     command: redis-server --save 60 1 --loglevel warning
     volumes:
-      - ../ll-service/data/redis:/data
+      - ../leanlayer-finalis-service/data/redis:/data
     networks:
       - ll-backend
 
   chromadb:
     image: chromadb/chroma:latest
     volumes:
-      - ../ll-service/data/chromadb:/chroma/chroma
+      - ../leanlayer-finalis-service/data/chromadb:/chroma/chroma
     networks:
       - ll-backend
 
