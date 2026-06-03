@@ -1,0 +1,130 @@
+name: ll-stack
+
+services:
+  ll-service:
+    build:
+      context: ../ll-service
+      dockerfile: Dockerfile
+    image: ll-service:latest
+    working_dir: /app/svc
+    env_file:
+      - ../ll-service/.env
+    ports:
+      - "127.0.0.1:5555:5555"
+    environment:
+      DJANGO_SETTINGS_MODULE: svc.settings.production
+      GOOGLE_APPLICATION_CREDENTIALS: /app/creds.json
+
+      RATE_LIMIT_REQUESTS: "100"
+      RATE_LIMIT_WINDOW_SECONDS: "60"
+      MAX_PARALLEL_REQUESTS: "15"
+      REQUEST_QUEUE_TIMEOUT_SECONDS: "1.0"
+
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: ll_service
+      POSTGRES_USER: ll_service
+      POSTGRES_PASSWORD: ll_service
+
+      REDIS_URL: redis://redis:6379/1
+      REDIS_HOST: redis
+      CHROMADB_HOST: chromadb
+      CHROMADB_PORT: "8000"
+
+      LL_SERVICE_URL: http://ll-service:5555
+      LL_CONNECTORS_URL: http://ll-connectors:5558
+
+      PYTHONPATH: /app/svc:/app
+    depends_on:
+      - postgres
+      - redis
+      - chromadb
+      - ll-connectors
+    volumes:
+      - ../ll-service/.cache:/app/.cache
+      - ../ll-service/runtime-configs/available_migrated_sources.yaml:/app/svc/configs/available_migrated_sources.yaml
+      - ../ll-service/creds.json:/app/creds.json:ro
+    networks:
+      - ll-backend
+
+  ll-connectors:
+    build:
+      context: ../ll-connectors
+      dockerfile: Dockerfile
+    image: ll-connectors:latest
+    working_dir: /app/svc
+    env_file:
+      - ../ll-connectors/.env
+    command: gunicorn svc.wsgi:application --bind 0.0.0.0:5558 --workers 3 --timeout 120
+    ports:
+      - "127.0.0.1:5558:5558"
+    environment:
+      DJANGO_SETTINGS_MODULE: svc.settings.production
+      PYTHONPATH: /app
+      LL_SERVICE_URL: http://ll-service:5555
+      LL_CONNECTORS_URL: http://ll-connectors:5558
+    networks:
+      - ll-backend
+
+  scheduler:
+    build:
+      context: ../ll-service
+      dockerfile: scheduler/Dockerfile
+    image: ll-scheduler:latest
+    restart: on-failure
+    env_file:
+      - ../ll-service/.env
+    environment:
+      GOOGLE_APPLICATION_CREDENTIALS: /app/creds.json
+      REDIS_HOST: redis
+      LL_SERVICE_URL: http://ll-service:5555
+      LL_CONNECTORS_URL: http://ll-connectors:5558
+      POSTGRES_HOST: postgres
+
+      ROUTINE_TIMEOUT: "360"
+    volumes:
+      - ../ll-service/scheduler:/app/scheduler
+      - ../ll-service/chat:/app/chat
+      - ../ll-service/secrets_loader.py:/app/secrets_loader.py
+      - ../ll-service/creds.json:/app/creds.json:ro
+      - ../ll-service/data/snapshots/postgres:/snapshots/postgres
+      - ../ll-service/data/snapshots/chromadb:/snapshots/chromadb
+      - ../ll-service/data/chromadb:/chroma/chroma:ro
+    depends_on:
+      - postgres
+      - ll-service
+      - ll-connectors
+    networks:
+      - ll-backend
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ll_service
+      POSTGRES_USER_D: ll_service
+      POSTGRES_PASSWORD: ll_service
+    ports:
+      - "5432:5432"
+    volumes:
+      - ../ll-service/data/postgres:/var/lib/postgresql/data
+    networks:
+      - ll-backend
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - ../ll-service/data/redis:/data
+    networks:
+      - ll-backend
+
+  chromadb:
+    image: chromadb/chroma:latest
+    volumes:
+      - ../ll-service/data/chromadb:/chroma/chroma
+    networks:
+      - ll-backend
+
+networks:
+  ll-backend:
+    driver: bridge

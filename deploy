@@ -1,0 +1,27 @@
+#!/bin/bash
+
+CONTAINER=""
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --container)
+      CONTAINER="$2"
+      shift 2 # Move past the flag and the value
+      ;;
+    *)
+      echo "Unknown argument: $1"
+      echo "Usage: $0 --container <container_name>"
+      exit 1
+      ;;
+  esac
+done
+
+echo "Rebuilding $CONTAINER"
+
+docker compose down $CONTAINER
+
+docker compose build --no-cache $CONTAINER
+
+docker compose up -d --remove-orphans $CONTAINER
+
+
