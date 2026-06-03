@@ -91,7 +91,7 @@ services:
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: ll_service
-      POSTGRES_USER_D: ll_service
+      POSTGRES_USER: ll_service
       POSTGRES_PASSWORD: ll_service
     ports:
       - "5432:5432"
