@@ -20,8 +20,6 @@ services:
       POSTGRES_HOST: postgres
       POSTGRES_PORT: "5432"
       POSTGRES_DB: ll_service
-      POSTGRES_USER: ll_service
-      POSTGRES_PASSWORD: ll_service
 
       REDIS_URL: redis://redis:6379/1
       REDIS_HOST: redis
@@ -57,6 +55,11 @@ services:
       PYTHONPATH: /app
       LL_SERVICE_URL: http://leanlayer-finalis-service:5555
       LL_CONNECTORS_URL: http://leanlayer-finalis-connectors:5558
+      REDIS_URL: redis://redis:6379/1
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: ll_service
+      ALLOWED_HOSTS: "*"
     networks:
       - ll-backend
 
@@ -71,7 +74,6 @@ services:
       LL_SERVICE_URL: http://leanlayer-finalis-service:5555
       LL_CONNECTORS_URL: http://leanlayer-finalis-connectors:5558
       POSTGRES_HOST: postgres
-
       ROUTINE_TIMEOUT: "360"
     volumes:
       - ../leanlayer-finalis-service/scheduler:/app/scheduler
