@@ -119,6 +119,25 @@ services:
     networks:
       - ll-backend
 
+  leanlayer-finalis-slack-ticket-bot:
+    build:
+      context: ../leanlayer-finalis-service/chat/slack
+      dockerfile: Dockerfile
+    image: leanlayer-finalis-slack-ticket-bot:latest
+    restart: on-failure
+    working_dir: /app
+    environment:
+      REDIS_URL: redis://redis:6379/1
+      REDIS_HOST: redis
+    depends_on:
+      - redis
+      - leanlayer-finalis-service
+      - leanlayer-finalis-connectors
+    volumes:
+      - ../leanlayer-finalis-service/chat/slack/.cache:/app/.cache
+    networks:
+      - ll-backend
+
 networks:
   ll-backend:
     driver: bridge
